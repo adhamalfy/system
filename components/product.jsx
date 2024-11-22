@@ -7,34 +7,57 @@ const Product = () => {
   const [consumerPrice, setConsumerPrice] = useState("");
   const [products, setProducts] = useState([]);
 
-
+  // Fetch products from API on component load
   useEffect(() => {
-    const storedProducts = JSON.parse(localStorage.getItem("products")) || [];
-    setProducts(storedProducts);
+    fetchProducts();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("products", JSON.stringify(products));
-  }, [products]);
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("/products/api");
+      if (!response.ok) throw new Error("Failed to fetch products");
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
 
-  const addProduct = () => {
+  const addProduct = async () => {
     if (!productName || !wholesalePrice || !consumerPrice) {
       alert("Please fill all fields!");
       return;
     }
 
     const newProduct = {
-      id: Date.now(), 
       name: productName,
       wholesalePrice: parseFloat(wholesalePrice),
-      consumerPrice: parseFloat(consumerPrice),
-      dateAdded: new Date().toLocaleString(), 
+      customerPrice: parseFloat(consumerPrice),
+      quantity: 20, // add quantity functionality
     };
 
-    setProducts([...products, newProduct]);
-    setProductName("");
-    setWholesalePrice("");
-    setConsumerPrice("");
+    try {
+      const response = await fetch("/products/api", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newProduct),
+      });
+
+      if (!response.ok){
+        await response.json().then((data) => {
+          console.log(data)
+        })
+        throw new Error("Failed to add product");
+      }
+
+      const savedProduct = await response.json();
+      setProducts([...products, savedProduct]); // Update state with the new product
+      setProductName("");
+      setWholesalePrice("");
+      setConsumerPrice("");
+    } catch (error) {
+      console.error("Error adding product:", error);
+    }
   };
 
   return (
@@ -102,11 +125,8 @@ const Product = () => {
               <div>
                 <p className="text-gray-700 font-semibold">{product.name}</p>
                 <p className="text-gray-500 text-sm">
-                  Wholesale: ${product.wholesalePrice.toFixed(2)} | Consumer: $
-                  {product.consumerPrice.toFixed(2)}
-                </p>
-                <p className="text-gray-400 text-xs">
-                  Added on: {product.dateAdded}
+                  Wholesale: ${product.wholesalePrice} | Consumer: $
+                  {product.customerPrice}
                 </p>
               </div>
             </li>

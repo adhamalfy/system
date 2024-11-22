@@ -1,16 +1,12 @@
 import Sidebar from "../../../components/sidebar";
 import Product from "../../../components/product";
 const Products = () => {
-    return (
+  return (
+    <>
+      <Sidebar />
+      <Product />
+    </>
+  );
+};
 
-        <>
-        <Sidebar></Sidebar>
-        <Product></Product>
-        </>
-      
-    
-    );
-  };
-  
-  export default Products;
-  
+export default Products;
